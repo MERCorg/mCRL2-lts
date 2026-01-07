@@ -41,6 +41,7 @@ def main():
     parsed_args = args.parse_args()
 
     run(parsed_args.cases_path / "industrial/1394/", parsed_args.mcrl2_path, parsed_args.output_path, "1394-fin.aut")
+    run(parsed_args.cases_path / "academic/dining/", parsed_args.mcrl2_path, parsed_args.output_path, "dining_10.aut")
 
 
 if __name__ == "__main__":
