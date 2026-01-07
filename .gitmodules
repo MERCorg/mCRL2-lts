@@ -1,0 +1,3 @@
+[submodule "mCRL2"]
+	path = mCRL2
+	url = https://github.com/mlaveaux/mCRL2.git
