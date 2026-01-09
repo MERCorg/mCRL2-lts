@@ -27,6 +27,4 @@ RUN mkdir /root/mCRL2/build && cd /root/mCRL2/build && cmake . \
 ARG THREADS=8
 RUN cd /root/mCRL2/build && make -j${THREADS}
 
-COPY cases/ /root/cases/
-
 COPY scripts/ /root/scripts/
