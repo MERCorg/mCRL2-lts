@@ -7,4 +7,4 @@ import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 subprocess.run(['mcrl22lps', '-v', 'clobber.mcrl2', 'clobber.lps'], check=True)
-subprocess.run(['lps2lts', '-vrjittyc', 'clobber.lps', 'clobber.aut'], check=True)
+subprocess.run(['lps2lts', '-vrjittyc', 'clobber.lps', 'clobber.aut', '-v'], check=True)

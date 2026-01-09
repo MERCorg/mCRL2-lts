@@ -20,9 +20,14 @@ def run(path: Path, mcrl2_path: Path, output_path: Path, generated_lts: str):
 
     env = os.environ.copy()
     env["PATH"] = str(mcrl2_path) + os.pathsep + env.get("PATH", "")
-    proc = subprocess.run([sys.executable, str(run_py)], cwd=str(path), check=True, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    for line in proc.stdout:
-        print(line.decode(), end="")
+    with subprocess.Popen([sys.executable, str(run_py)], cwd=str(path), env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1) as proc:
+        if proc.stdout:
+            for line in proc.stdout:
+                print(line, end="")
+
+        proc.wait()
+        if proc.returncode != 0:
+            raise RuntimeError(f"Running {run_py} failed with exit code {proc.returncode}") 
 
     # Copy the generated .aut file to the output location
     generated_file = path / generated_lts
