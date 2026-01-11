@@ -128,12 +128,6 @@ def main():
         "goback.aut",
     )
     run(
-        parsed_args.cases_path / "academic/hopcroft/",
-        parsed_args.mcrl2_path,
-        parsed_args.output_path,
-        "hopcroft.aut",
-    )
-    run(
         parsed_args.cases_path / "academic/onebit/",
         parsed_args.mcrl2_path,
         parsed_args.output_path,
