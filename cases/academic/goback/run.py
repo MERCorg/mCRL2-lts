@@ -8,4 +8,4 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 subprocess.run(['mcrl22lps', 'goback.mcrl2', 'goback.lps'], check=True)
 
-subprocess.run(['lps2lts', 'goback.lps', 'goback.aut', '-v'], check=True)
+subprocess.run(['lps2lts', 'goback.lps', 'goback.aut', '-rjittyc', '-v'], check=True)

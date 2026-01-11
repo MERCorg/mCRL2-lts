@@ -40,7 +40,7 @@ def run(path: Path, mcrl2_path: Path, output_path: Path, generated_lts: str):
     env = os.environ.copy()
     env["PATH"] = str(mcrl2_path) + os.pathsep + env.get("PATH", "")
 
-    result = {"lts": generated_lts}
+    result = {"lts": generated_lts, "contains_tau": False}
     with subprocess.Popen(
         [sys.executable, str(run_py)],
         cwd=str(path),

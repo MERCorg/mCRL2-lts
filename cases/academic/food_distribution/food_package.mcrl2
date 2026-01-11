@@ -36,7 +36,7 @@
 sort Place = struct S | A | B | C;
 
 map TRUCK_CAPACITY:Pos;
-eqn TRUCK_CAPACITY=200; % If 300 starvation must take place. If 320 sustained delivery without starvation is possible.
+eqn TRUCK_CAPACITY=150; % If 300 starvation must take place. If 320 sustained delivery without starvation is possible.
 
 map natminus:Nat#Nat->Nat;
 var n,m:Nat;
