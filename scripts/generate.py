@@ -17,6 +17,10 @@ def run(path: Path, mcrl2_path: Path, output_path: Path, generated_lts: str):
     run_py = path / "run.py"
     if not run_py.exists():
         raise FileNotFoundError(f"{run_py} not found")
+    
+    if os.path.exists(os.path.join(output_path, generated_lts + ".bz2")):
+        print(f"{generated_lts}.bz2 already exists in {output_path}, skipping generation.")
+        return
 
     env = os.environ.copy()
     env["PATH"] = str(mcrl2_path) + os.pathsep + env.get("PATH", "")
@@ -56,7 +60,7 @@ def main():
 
     run(parsed_args.cases_path / "academic/dining/", parsed_args.mcrl2_path, parsed_args.output_path, "dining_10.aut")
     run(parsed_args.cases_path / "academic/food_distribution/", parsed_args.mcrl2_path, parsed_args.output_path, "food_distribution.aut")
-    run(parsed_args.cases_path / "academic/go_back/", parsed_args.mcrl2_path, parsed_args.output_path, "go_back.aut")
+    run(parsed_args.cases_path / "academic/goback/", parsed_args.mcrl2_path, parsed_args.output_path, "goback.aut")
     run(parsed_args.cases_path / "academic/hopcroft/", parsed_args.mcrl2_path, parsed_args.output_path, "hopcroft.aut")
     run(parsed_args.cases_path / "academic/onebit/", parsed_args.mcrl2_path, parsed_args.output_path, "onebit.aut")
 
