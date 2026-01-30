@@ -157,6 +157,29 @@ def main():
         ["goback.aut"],
     )
     run(
+        parsed_args.cases_path / "academic/non-atomic_registers/",
+        parsed_args.mcrl2_path,
+        parsed_args.output_path,
+        ["Aravind_BLRU.aut", 
+         "Aravind_BLRU.sym", 
+         "Dijkstra.aut", 
+         "Dijkstra.sym", 
+         "Lamport_3-bit.aut", 
+         "Lamport_3-bit.sym",
+         "Lamport_3-bit_incorrect_z.aut",
+         "Lamport_3-bit_incorrect_z.sym",
+         "Szymanski_3-bit_lin_wait.aut",
+         "Szymanski_3-bit_lin_wait.sym",
+         "Szymanski_3-bit_lin_wait_alt.aut",
+         "Szymanski_3-bit_lin_wait_alt.sym"
+         "Szymanski_flag.aut",
+         "Szymanski_flag.sym",
+         "Szymanski_flag_bit.aut",
+         "Szymanski_flag_bit.sym"
+         "Szymanski_flag_bit_altexit.aut",
+         "Szymanski_flag_bit_altexit.sym"],
+    )
+    run(
         parsed_args.cases_path / "academic/onebit/",
         parsed_args.mcrl2_path,
         parsed_args.output_path,
@@ -187,6 +210,24 @@ def main():
         parsed_args.output_path,
         ["four_in_a_row_symbolic.sym"],
     )
+    run(
+        parsed_args.cases_path / "games/game_of_goose/",
+        parsed_args.mcrl2_path,
+        parsed_args.output_path,
+        ["game_of_goose.aut"],
+    )
+    run(
+        parsed_args.cases_path / "games/hex/",
+        parsed_args.mcrl2_path,
+        parsed_args.output_path,
+        ["hex.aut"],
+    )    
+    run(
+        parsed_args.cases_path / "games/knights/",
+        parsed_args.mcrl2_path,
+        parsed_args.output_path,
+        ["knights.aut"],
+    )
 
     run(
         parsed_args.cases_path / "industrial/1394/",
@@ -201,7 +242,6 @@ def main():
         parsed_args.output_path,
         ["WMS.aut", "WMS.sym"],
     )
-
 
 if __name__ == "__main__":
     main()
