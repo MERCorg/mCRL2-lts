@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import json
+from typing import Any
 
 from pathlib import Path as Path
 import os
@@ -23,7 +24,13 @@ def parse_state_space_output(line: str) -> tuple[int, int] | None:
     return None
 
 
-def run(path: Path, mcrl2_path: Path, output_path: Path, generated_lts: list[str]):
+def run(
+    path: Path,
+    mcrl2_path: Path,
+    output_path: Path,
+    generated_lts: list[str],
+    pretty_print_lps: list[str],
+):
     """Execute the given run.py script in the given path."""
 
     print(f"Generating {generated_lts} from {path}")
@@ -31,6 +38,10 @@ def run(path: Path, mcrl2_path: Path, output_path: Path, generated_lts: list[str
     ltsinfo_path = shutil.which("ltsinfo", path=str(mcrl2_path))
     if ltsinfo_path is None:
         raise FileNotFoundError("ltsinfo not found in the given mCRL2 path")
+
+    lpspp_path = shutil.which("lpspp", path=str(mcrl2_path))
+    if lpspp_path is None:
+        raise FileNotFoundError("lpspp not found in the given mCRL2 path")
 
     run_py = path / "run.py"
     if not run_py.exists():
@@ -41,11 +52,11 @@ def run(path: Path, mcrl2_path: Path, output_path: Path, generated_lts: list[str
     for file in generated_lts:
         if file.endswith(".aut"):
             # For .aut check .aut.bz2 existence
-            if not (output_path / f"{file}.bz2").exists():
+            if not (output_path / "explicit" / f"{file}.bz2").exists():
                 already_generated = False
         else:
             # Else check the file directly
-            if not (output_path / file).exists():
+            if not (output_path / "symbolic" / file).exists():
                 already_generated = False
 
     if already_generated:
@@ -74,15 +85,44 @@ def run(path: Path, mcrl2_path: Path, output_path: Path, generated_lts: list[str
                 f"Running {run_py} failed with exit code {proc.returncode}"
             )
 
-    # Copy the generated .aut file to the output location
+    lps_output_path = output_path / "lps"
+    lps_output_path.mkdir(parents=True, exist_ok=True)
+
+    for lps_name in pretty_print_lps:
+        source_lps = path / lps_name
+        if not source_lps.exists():
+            raise FileNotFoundError(f"{source_lps} not found after running {run_py}")
+
+        pretty_lps_filename = f"{path.name}_{Path(lps_name).stem}.lps.txt"
+        pretty_lps = lps_output_path / pretty_lps_filename
+        with open(pretty_lps, "w", encoding="utf-8") as lps_out:
+            with subprocess.Popen(
+                [lpspp_path, str(source_lps)],
+                text=True,
+                stdout=lps_out,
+                bufsize=1,
+            ) as proc:
+                proc.wait()
+                if proc.returncode != 0:
+                    raise RuntimeError(
+                        f"Running lpspp on {source_lps} failed with exit code {proc.returncode}"
+                    )
+
+    # Copy generated artefacts to output, and collect metadata.
     for file in generated_lts:
-        result = {"lts": file}
+        result: dict[str, Any] = {"lts": file}
 
         generated_file = path / file
         if not generated_file.exists():
             raise FileNotFoundError(f"{generated_file} not found after running {run_py}")
 
-        output_file = output_path / file
+        if Path(file).suffix == ".aut":
+            file_output_path = output_path / "explicit"
+        else:
+            file_output_path = output_path / "symbolic"
+        file_output_path.mkdir(parents=True, exist_ok=True)
+
+        output_file = file_output_path / file
         shutil.move(str(generated_file), str(output_file))
 
         if output_file.suffix == ".aut":
@@ -143,53 +183,67 @@ def main():
         parsed_args.mcrl2_path,
         parsed_args.output_path,
         ["dining_10.aut"],
+        ["dining_10.lps"],
     )
     run(
         parsed_args.cases_path / "academic/food_distribution/",
         parsed_args.mcrl2_path,
         parsed_args.output_path,
         ["food_distribution.aut"],
+        ["food_package.lps"],
     )
     run(
         parsed_args.cases_path / "academic/goback/",
         parsed_args.mcrl2_path,
         parsed_args.output_path,
         ["goback.aut"],
+        ["goback.lps"],
     )
     run(
         parsed_args.cases_path / "academic/non-atomic_registers/",
         parsed_args.mcrl2_path,
         parsed_args.output_path,
-        ["Aravind_BLRU.aut", 
-         "Aravind_BLRU.sym", 
-         "Dijkstra.aut", 
-         "Dijkstra.sym", 
-         "Lamport_3-bit.aut", 
+        ["Aravind_BLRU.aut",
+         "Aravind_BLRU.sym",
+         "Dijkstra.aut",
+         "Dijkstra.sym",
+         "Lamport_3-bit.aut",
          "Lamport_3-bit.sym",
          "Lamport_3-bit_incorrect_z.aut",
          "Lamport_3-bit_incorrect_z.sym",
          "Szymanski_3-bit_lin_wait.aut",
          "Szymanski_3-bit_lin_wait.sym",
          "Szymanski_3-bit_lin_wait_alt.aut",
-         "Szymanski_3-bit_lin_wait_alt.sym"
+         "Szymanski_3-bit_lin_wait_alt.sym",
          "Szymanski_flag.aut",
          "Szymanski_flag.sym",
          "Szymanski_flag_bit.aut",
-         "Szymanski_flag_bit.sym"
+         "Szymanski_flag_bit.sym",
          "Szymanski_flag_bit_altexit.aut",
          "Szymanski_flag_bit_altexit.sym"],
+        ["Aravind_BLRU.lps",
+         "Dijkstra.lps",
+         "Lamport_3-bit.lps",
+         "Lamport_3-bit_incorrect_z.lps",
+         "Szymanski_3-bit_lin_wait.lps",
+         "Szymanski_3-bit_lin_wait_alt.lps",
+         "Szymanski_flag.lps",
+         "Szymanski_flag_bit.lps",
+         "Szymanski_flag_bit_altexit.lps"],
     )
     run(
         parsed_args.cases_path / "academic/onebit/",
         parsed_args.mcrl2_path,
         parsed_args.output_path,
         ["onebit.aut"],
+        ["onebit.lps"],
     )
     run(
         parsed_args.cases_path / "academic/swp/",
         parsed_args.mcrl2_path,
         parsed_args.output_path,
         ["swp_with_tanenbaums_bug.sym"],
+        ["swp_with_tanenbaums_bug.lps"],
     )
 
     run(
@@ -197,36 +251,42 @@ def main():
         parsed_args.mcrl2_path,
         parsed_args.output_path,
         ["clobber.aut"],
+        ["clobber.lps"],
     )
     run(
         parsed_args.cases_path / "games/domineering/",
         parsed_args.mcrl2_path,
         parsed_args.output_path,
         ["domineering.aut"],
+        ["domineering.lps"],
     )
     run(
         parsed_args.cases_path / "games/four_in_a_row_symbolic/",
         parsed_args.mcrl2_path,
         parsed_args.output_path,
         ["four_in_a_row_symbolic.sym"],
+        ["temp.lps"],
     )
     run(
         parsed_args.cases_path / "games/game_of_goose/",
         parsed_args.mcrl2_path,
         parsed_args.output_path,
         ["game_of_goose.aut"],
+        ["game_of_goose.lps"],
     )
     run(
         parsed_args.cases_path / "games/hex/",
         parsed_args.mcrl2_path,
         parsed_args.output_path,
         ["hex.aut"],
-    )    
+        ["hex.lps"],
+    )
     run(
         parsed_args.cases_path / "games/knights/",
         parsed_args.mcrl2_path,
         parsed_args.output_path,
         ["knights.aut"],
+        ["knights.lps"],
     )
 
     run(
@@ -234,6 +294,7 @@ def main():
         parsed_args.mcrl2_path,
         parsed_args.output_path,
         ["1394-fin.aut"],
+        ["1394-fin.lps"],
     )
 
     run(
@@ -241,6 +302,7 @@ def main():
         parsed_args.mcrl2_path,
         parsed_args.output_path,
         ["WMS.aut", "WMS.sym"],
+        ["WMS.lps"],
     )
 
 if __name__ == "__main__":
