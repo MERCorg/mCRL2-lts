@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import json
+import time
 from typing import Any
 
 from pathlib import Path as Path
@@ -66,6 +67,7 @@ def run(
     env = os.environ.copy()
     env["PATH"] = str(mcrl2_path) + os.pathsep + env.get("PATH", "")
 
+    run_start = time.monotonic()
     with subprocess.Popen(
         [sys.executable, str(run_py)],
         cwd=str(path),
@@ -84,6 +86,7 @@ def run(
             raise RuntimeError(
                 f"Running {run_py} failed with exit code {proc.returncode}"
             )
+    run_time = time.monotonic() - run_start
 
     lps_output_path = output_path / "lps"
     lps_output_path.mkdir(parents=True, exist_ok=True)
@@ -93,7 +96,7 @@ def run(
         if not source_lps.exists():
             raise FileNotFoundError(f"{source_lps} not found after running {run_py}")
 
-        pretty_lps_filename = f"{path.name}_{Path(lps_name).stem}.lps.txt"
+        pretty_lps_filename = f"{Path(lps_name).stem}.lps.txt"
         pretty_lps = lps_output_path / pretty_lps_filename
         with open(pretty_lps, "w", encoding="utf-8") as lps_out:
             with subprocess.Popen(
@@ -110,7 +113,7 @@ def run(
 
     # Copy generated artefacts to output, and collect metadata.
     for file in generated_lts:
-        result: dict[str, Any] = {"lts": file}
+        result: dict[str, Any] = {"lts": file, "run_time": run_time}
 
         generated_file = path / file
         if not generated_file.exists():
@@ -154,11 +157,17 @@ def run(
                     raise RuntimeError(
                         f"Running ltsinfo on {output_file} failed with exit code {proc.returncode}"
                     )
+                
+            # Fail if the state or transitions cannot be obtained
+            if "states" not in result or "transitions" not in result:
+                raise RuntimeError(f"Could not obtain states and transitions from ltsinfo output for {output_file}")
 
             # Compress the .aut file with bz2
+            compress_start = time.monotonic()
             with open(output_file, "rb") as f_in:
                 with bz2.open(f"{output_file}.bz2", "wb") as f_out:
                     f_out.writelines(f_in)
+            result["compress_time"] = time.monotonic() - compress_start
 
             # Delete the original .aut file
             output_file.unlink()
@@ -265,7 +274,7 @@ def main():
         parsed_args.mcrl2_path,
         parsed_args.output_path,
         ["four_in_a_row_symbolic.sym"],
-        ["temp.lps"],
+        ["four_in_a_row_symbolic.lps"],
     )
     run(
         parsed_args.cases_path / "games/game_of_goose/",

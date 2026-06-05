@@ -31,14 +31,14 @@ run = subprocess.run(
 run = subprocess.run(
     ["lpsrewr", "-v"], input=run.stdout, stdout=subprocess.PIPE, check=True
 )
-subprocess.run(["lpsconstelm", "-v", "-", "temp.lps"], input=run.stdout, check=True)
+subprocess.run(["lpsconstelm", "-v", "-", "four_in_a_row_symbolic.lps"], input=run.stdout, check=True)
 subprocess.run(
     [
         "lpsreach",
         "-v",
         "--groups=simple",
         "--reorder=42 35 28 21 14 7 0 36 29 22 15 8 1 37 30 23 16 9 2 38 31 24 17 10 3 39 32 25 18 11 4 40 33 26 19 12 5 41 34 27 20 13 6",
-        "temp.lps",
+        "four_in_a_row_symbolic.lps",
         "four_in_a_row_symbolic.sym",
     ],
     check=True,
